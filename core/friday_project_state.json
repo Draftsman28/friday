@@ -1,0 +1,96 @@
+{
+  "project": "Friday",
+  "session": 4,
+  "date": "2026-05-16",
+  "hardware": {
+    "cpu": "AMD Ryzen 5 5600X",
+    "gpu": "Intel Arc A750",
+    "ram": "16GB DDR4",
+    "os": "Fedora 44"
+  },
+  "model": {
+    "name": "Qwen2-VL-2B-Instruct",
+    "backend": "LM Studio",
+    "url": "http://10.146.227.181:1234",
+    "parallel_slots": 2,
+    "previous_model": "Qwen-VL-7B"
+  },
+  "image_library": {
+    "total_images": 20,
+    "location": "~/friday/refs/",
+    "formats": [
+      "jpg",
+      "png"
+    ],
+    "webp_converted": true
+  },
+  "indexes": {
+    "expert_single": {
+      "file": "~/friday/captions_expert.json",
+      "status": "complete",
+      "count": 20,
+      "search_tool": "search_vl_expert.py",
+      "quality": "good for visual qualities, weak for narrative/action"
+    },
+    "multi_lens": {
+      "file": "~/friday/captions_multi_lens.json",
+      "status": "pending",
+      "count": 0,
+      "indexer": "index_multi_lens_concurrent.py",
+      "search_tool": "search_multi_lens.py",
+      "lenses": [
+        "character",
+        "environment",
+        "color",
+        "motion",
+        "composition",
+        "narrative"
+      ],
+      "approach": "single API call per image, Qwen picks 3 best lenses, outputs JSON",
+      "concurrency": 2
+    }
+  },
+  "pipeline_status": {
+    "voice_input": {
+      "status": "not started",
+      "blocker": "Vosk model download (~40MB)"
+    },
+    "search": {
+      "status": "ready",
+      "tools": [
+        "search_vl_expert.py",
+        "search_multi_lens.py"
+      ]
+    },
+    "viewer": {
+      "status": "ready",
+      "tools": [
+        "feh",
+        "imv"
+      ]
+    },
+    "main_script": {
+      "status": "not started",
+      "name": "friday.py"
+    }
+  },
+  "files": {
+    "core_dir": "~/friday/core/",
+    "scripts": [
+      "index_multi_lens_fast.py",
+      "index_multi_lens_concurrent.py",
+      "search_multi_lens.py",
+      "search_vl_expert.py",
+      "test_concurrent_vl.py"
+    ]
+  },
+  "next_steps": [
+    "1. Run test_concurrent_vl.py to verify 2-concurrent performance",
+    "2. If speedup >= 1.3x, run index_multi_lens_concurrent.py",
+    "3. Test search_multi_lens.py with narrative queries",
+    "4. Download Vosk model for voice pipeline",
+    "5. Build friday.py voice→search→feh pipeline"
+  ],
+  "mvp_deadline": "2026-06-01",
+  "days_remaining": 15
+}

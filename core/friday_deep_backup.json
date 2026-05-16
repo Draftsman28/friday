@@ -1,0 +1,100 @@
+{
+  "project": "Friday",
+  "session": 4,
+  "decisions": [
+    {
+      "date": "2026-05-15",
+      "decision": "Terminal-first headless approach",
+      "reason": "Artist workflow is keyboard-centric, GUI overhead not justified for MVP"
+    },
+    {
+      "date": "2026-05-15",
+      "decision": "Vosk for offline voice recognition",
+      "reason": "Local-first requirement, no cloud APIs, small model (~40MB)"
+    },
+    {
+      "date": "2026-05-15",
+      "decision": "feh/imv for image viewing",
+      "reason": "Lightweight, already installed, no GUI framework needed"
+    },
+    {
+      "date": "2026-05-15",
+      "decision": "CLIP+FAISS for expert single-caption search",
+      "reason": "Fast similarity search, no API calls at query time"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Qwen VL via LM Studio for caption generation",
+      "reason": "Rich semantic captions vs CLIP's shallow embeddings"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Multi-lens indexing (6 lenses)",
+      "reason": "Single-caption search weak on narrative/action queries"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Single API call per image for multi-lens",
+      "reason": "Multi-call approach was 60-100s/image due to image encoder overhead (21s per call)"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Switch from Qwen-VL-7B to Qwen2-VL-2B",
+      "reason": "7B image encoding was 21s/image on Arc A750; 2B should be ~2-3x faster"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Test Parallel 2 concurrency",
+      "reason": "LM Studio has 2 slots; test if true parallelism or just interleaving on Arc A750"
+    }
+  ],
+  "rejected": [
+    {
+      "idea": "PyQt6 GUI",
+      "reason": "Too heavy for MVP, terminal-first is faster to build and run"
+    },
+    {
+      "idea": "KRunner integration",
+      "reason": "KDE-specific, adds complexity, not core to artist workflow"
+    },
+    {
+      "idea": "Clicky cursor pet / persistent mascot",
+      "reason": "Distraction from core search functionality"
+    },
+    {
+      "idea": "Transparent overlays",
+      "reason": "Compositor-dependent, fragile, not MVP"
+    },
+    {
+      "idea": "Local LLM for general chat",
+      "reason": "Out of scope; Friday is search/retrieval, not conversational"
+    },
+    {
+      "idea": "Obsidian integration",
+      "reason": "Not needed for reference retrieval; adds sync complexity"
+    },
+    {
+      "idea": "CLIP-based image classification in indexer",
+      "reason": "Redundant with VL model captions, caused 605MB download"
+    },
+    {
+      "idea": "Multi-call-per-image indexing (4-5 calls)",
+      "reason": "60-100s/image, LM Studio log spam, image encoder overhead multiplies"
+    }
+  ],
+  "performance_notes": {
+    "qwen_vl_7b_image_encoding": "21s per image on Intel Arc A750 (6 slices, 2-3s each)",
+    "qwen_vl_7b_generation": "7-9s per call",
+    "qwen_vl_7b_total_per_call": "~30s",
+    "multi_call_penalty": "4-5 calls = 120s/image vs 30s single-call",
+    "qwen2_vl_2b_expected": "~10s/image (2-3x faster than 7B)",
+    "parallel_2_expected_speedup": "1.3-1.5x (not 2x due to shared GPU image encoder)"
+  },
+  "risks": [
+    "Intel Arc A750 vision model performance is slower than NVIDIA; may need to accept ~10s/image",
+    "Concurrent processing may cause LM Studio instability if GPU memory exhausted",
+    "Vosk model download may fail on slow connection",
+    "MVP deadline (June 1) is 15 days away; voice pipeline still not started"
+  ],
+  "next_concrete_action": "Run test_concurrent_vl.py, measure actual speedup, then decide single vs concurrent for full index"
+}

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# FAISS / Index
+*.index
+*.faiss
+index/*.bin
+index/*.npy
+
+# Models
+*.onnx
+*.pt
+*.pth
+*.safetensors
+models/
+
+# Audio / temp
+*.wav
+*.mp3
+tmp/
+temp/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

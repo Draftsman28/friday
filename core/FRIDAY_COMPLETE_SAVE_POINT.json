@@ -1,0 +1,270 @@
+{
+  "project": "Friday",
+  "version": "0.1-MVP",
+  "session": 4,
+  "date": "2026-05-16",
+  "type": "SAVE_POINT",
+  "purpose": "Terminal-native voice-to-image reference retrieval tool for visual artists on Fedora 44",
+  "origin_story": {
+    "who": "Visual artist (draftsman) on Fedora 44",
+    "need": "Find reference images by speaking or typing natural descriptions",
+    "workflow": "Voice/text query → search local image library → open results in image viewer on drawing tablet",
+    "constraints": "Local-first only, no cloud APIs, no heavy GPU compute, terminal-first approach"
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 5 5600X",
+    "gpu": "Intel Arc A750 (8GB VRAM)",
+    "ram": "16GB DDR4",
+    "os": "Fedora 44",
+    "displays": {
+      "DP-3": "3328x1872 — XP-Pen drawing display (primary, images open here)",
+      "DP-1": "2560x1600 — Acer monitor (secondary, terminal here)"
+    },
+    "peripherals": {
+      "mic": "None (Bluetooth dead, no USB headset)",
+      "tablet": "XP-Pen display tablet",
+      "phone": "Moto Edge 50 (USB tethering for internet)"
+    }
+  },
+  "ai_stack": {
+    "vision_model": {
+      "name": "bartowski/qwen2-vl-2b-instruct",
+      "size": "2B parameters",
+      "backend": "LM Studio",
+      "url": "http://10.146.227.7:1234",
+      "auto_detect": true,
+      "config_file": "~/friday/api_endpoint.txt",
+      "parallel_slots": 4,
+      "indexing_speed": "~2-4s per image (resized to 1024px)",
+      "json_reliability": "POOR — hallucinates, outputs dicts instead of strings, copies examples, malformed JSON",
+      "quality": "Acceptable for basic captions, unreliable for structured output"
+    },
+    "voice_model": {
+      "name": "vosk-model-small-en-us-0.15",
+      "size": "~40MB",
+      "status": "Downloaded but UNUSED — no microphone available",
+      "location": "~/friday/models/vosk-model-small-en-us-0.15/"
+    }
+  },
+  "image_library": {
+    "total_images": 20,
+    "location": "~/friday/refs/",
+    "formats": [
+      "jpg",
+      "png",
+      "jpeg"
+    ],
+    "webp_converted": true,
+    "categories": {
+      "combat/action": [
+        "savethr.com_1777320323223.jpg",
+        "savethr.com_1777320351002.jpg",
+        "savethr.com_1777320353495.jpg"
+      ],
+      "portrait/character": [
+        "savethr.com_1777320349016.jpg",
+        "savethr.com_1777320358328.jpg",
+        "savethr.com_1777320360190.jpg",
+        "673872296_18071771462649885_7227272624871134143_n.jpg",
+        "682679537_18071771435649885_8057562149642660967_n.jpg"
+      ],
+      "landscape/atmosphere": [
+        "pexels-ambient_nature_-atmosphere-1682386-14700048.jpg",
+        "pexels-ambient_nature_-atmosphere-1682386-15828555.jpg",
+        "pexels-ambient_nature_-atmosphere-1682386-33290734.jpg",
+        "QuietSpringAfternoon-noLogo.jpg"
+      ],
+      "anime/stylized": [
+        "674546656_18071771417649885_4502267908937550988_n.jpg",
+        "675396080_18071771432649885_1515134725939391482_n.jpg",
+        "682724649_18071771450649885_1390397772722532039_n.jpg",
+        "684280661_18071771453649885_9088713570570443621_n.jpg"
+      ],
+      "scifi/abstract": [
+        "2688x1485.png",
+        "3840x2100.png",
+        "threadsdownloader.com_6cf192.jpeg"
+      ]
+    }
+  },
+  "index_status": {
+    "file": "~/friday/captions_multi_lens.json",
+    "approach": "Multi-lens (3 captions per image: character, environment, color/motion/composition/narrative)",
+    "method": "Single API call per image, auto-resize to 1024px, save incrementally",
+    "total_indexed": 20,
+    "quality_breakdown": {
+      "good": 12,
+      "mediocre": 5,
+      "broken": 3
+    },
+    "broken_images": [
+      "pexels-ambient_nature_-atmosphere-1682386-14700048.jpg (JSON parse fail)",
+      "682724649_18071771450649885_1390397772722532039_n.jpg (JSON parse fail)",
+      "684280661_18071771453649885_9088713570570443621_n.jpg (JSON parse fail)"
+    ],
+    "legacy_index": "~/friday/captions_expert.json (20 single captions, unused)"
+  },
+  "pipeline": {
+    "input": {
+      "voice": {
+        "status": "NOT_IMPLEMENTED",
+        "blocker": "No microphone, Bluetooth dead, Vosk unused",
+        "script": "listen.py (built but never tested successfully)"
+      },
+      "text": {
+        "status": "WORKING",
+        "script": "friday_text.py",
+        "features": [
+          "Auto-detects LM Studio IP on first run",
+          "Saves endpoint to ~/friday/api_endpoint.txt",
+          "Interactive loop: type query → search → open images"
+        ]
+      }
+    },
+    "search": {
+      "backend": "Local keyword search on captions_multi_lens.json",
+      "tool": "search_friday.py",
+      "matching": "Whole-word regex (\\bquery\\b)",
+      "expansion": "DISABLED — LLM query expansion was non-deterministic",
+      "fallback": "None — no substring or semantic fallback",
+      "performance": "Instant (local JSON, no API calls)"
+    },
+    "viewer": {
+      "tool": "feh",
+      "display": "XP-Pen (DP-3, +0+0)",
+      "mode": "One window per image, tiled horizontally (3328px / N images)",
+      "window_title": "friday-ref-N",
+      "features": [
+        "--scale-down (keeps original aspect, fits to window)",
+        "--no-fullscreen (floating window)",
+        "--title (identifiable by xdotool)"
+      ],
+      "control": "xdotool search --name '^friday-ref-' | xargs xdotool windowclose"
+    },
+    "main_script": "friday_text.py"
+  },
+  "file_inventory": {
+    "core_dir": "~/friday/core/",
+    "active_scripts": [
+      "friday_text.py — Main pipeline (text input → search → feh on XP-Pen)",
+      "search_friday.py — Keyword search, reads api_endpoint.txt",
+      "reindex_all.py — Full re-indexer (minimal prompt, generic example)"
+    ],
+    "inactive_scripts": [
+      "listen.py — Vosk voice input (unused)",
+      "index_multi_lens_fast.py — Obsolete (concurrent, crashed on VRAM)",
+      "index_multi_lens_robust.py — Obsolete (replaced by reindex_all)",
+      "index_multi_lens_concurrent.py — Obsolete (crashed)",
+      "index_targeted.py — Domain-specific indexer (unused)",
+      "survey_domains.py — Debug tool, shows all captions",
+      "search_multi_lens.py — Obsolete keyword search",
+      "search_multi_lens_llm.py — Obsolete (LLM expansion)",
+      "search_multi_lens_semantic.py — Obsolete (CLIP, user rejected)",
+      "search_vl_expert.py — Obsolete (CLIP-based, loads HF Hub)",
+      "test_concurrent_vl.py — Test script (used once)",
+      "test_concurrent_vl_threaded.py — Test script (used once)",
+      "build_embeddings.py — Obsolete (CLIP, user rejected)"
+    ],
+    "data_files": [
+      "~/friday/captions_multi_lens.json — Current index (20 images, mixed quality)",
+      "~/friday/captions_expert.json — Legacy single-caption index",
+      "~/friday/api_endpoint.txt — LM Studio URL cache"
+    ],
+    "model_files": [
+      "~/friday/models/vosk-model-small-en-us-0.15/ — Vosk voice model (unused)"
+    ]
+  },
+  "working_commands": {
+    "run_friday": "python ~/friday/core/friday_text.py",
+    "reindex_all": "python ~/friday/core/reindex_all.py",
+    "search_direct": "python ~/friday/core/search_friday.py <query>",
+    "close_all_images": "xdotool search --name '^friday-ref-' | xargs xdotool windowclose",
+    "close_single": "xdotool windowclose $(xdotool search --name 'friday-ref-0')",
+    "find_lm_studio": "Auto-detected on first run of friday_text.py"
+  },
+  "tested_queries": {
+    "working": [
+      "combat",
+      "samurai",
+      "sword",
+      "training"
+    ],
+    "not_working": [
+      "warrior",
+      "swords",
+      "2 person",
+      "thumbnail",
+      "mat",
+      "dramatic face"
+    ],
+    "reason": "Exact word matching only — 'warrior' not in captions, 'swords' plural not matched, compound queries fail"
+  },
+  "development_history": {
+    "session_1": "Initial setup — single-caption expert indexing with Qwen VL 7B, CLIP search rejected",
+    "session_2": "Continued — webp conversion, basic search working",
+    "session_3": "Speed focus — multi-lens design, single-call indexing, concurrent test (16× speedup but cache artifact)",
+    "session_4": "Current — text input pipeline, auto-detect API, XP-Pen viewer, 3 re-index attempts, JSON reliability issues"
+  },
+  "what_works": [
+    "Type query → search local captions → open matching images on XP-Pen display",
+    "Multiple results open as separate tiled windows",
+    "Auto-detects LM Studio IP after reboot",
+    "12/20 images have vivid, searchable captions",
+    "Combat images findable by: combat, samurai, sword, training"
+  ],
+  "what_is_broken": [
+    "Qwen2 VL 2B cannot reliably output structured JSON — 3 images failed re-indexing",
+    "Exact-word search misses valid results ('warrior' vs 'warriors', 'sword' vs 'swords')",
+    "No substring or semantic fallback",
+    "Voice input not implemented (no mic)",
+    "3 images have empty/broken captions from JSON parse failures"
+  ],
+  "rejected_for_mvp": [
+    "PyQt6 GUI — too heavy",
+    "KRunner integration — KDE-specific",
+    "Clicky cursor pet / persistent mascot — distraction",
+    "Transparent overlays — fragile",
+    "Local LLM for general chat — out of scope",
+    "Obsidian integration — not needed",
+    "CLIP embeddings — user explicitly rejected, wants LLM-only",
+    "Concurrent indexing — VRAM crash on Arc A750",
+    "Multi-call-per-image — too slow (60-100s/image)"
+  ],
+  "next_session_priorities": {
+    "critical": [
+      "Fix search to substring matching (so 'war' finds 'warrior', 'sword' finds 'swords')",
+      "Manually fix or delete 3 broken image captions",
+      "Test with random words: tree, blue, angry, city, alone, fire, female, portrait"
+    ],
+    "important": [
+      "Add search result ranking by relevance score",
+      "Improve reindex_all.py prompt to prevent example copying",
+      "Consider plain-text output instead of JSON for reliability"
+    ],
+    "future": [
+      "Voice input when mic/Bluetooth fixed",
+      "Larger VL model (7B+) for reliable structured output",
+      "Tablet pen button trigger for voice/text",
+      "Batch overnight indexing for new reference folders",
+      "Search by specific lens: --lens narrative 'tense scene'"
+    ]
+  },
+  "open_questions": [
+    "Should we switch to plain-text captions (no JSON) to avoid model hallucination?",
+    "Should we get a USB headset or fix Bluetooth for voice input?",
+    "Should we try Qwen2 VL 7B despite slower speed for better JSON reliability?",
+    "Should we add more images to the library (current: 20)?"
+  ],
+  "mvp_assessment": {
+    "status": "FUNCTIONAL_BUT_ROUGH",
+    "text_pipeline": "80% complete — works for common queries, misses some",
+    "voice_pipeline": "0% complete — blocked by hardware",
+    "search_quality": "60% complete — exact word only, no semantics",
+    "index_quality": "70% complete — 12 good, 5 mediocre, 3 broken",
+    "viewer": "90% complete — opens on correct monitor, tiled windows work",
+    "overall": "Tier 1 (Beginner) is functional but not polished. Ready for daily use with caveats."
+  },
+  "deadline": "2026-06-01",
+  "days_remaining": 15,
+  "confidence": "Will hit MVP if voice is deprioritized and search fixes are made in next 1-2 sessions"
+}

@@ -1,0 +1,138 @@
+{
+  "project": "Friday",
+  "session": 4,
+  "date": "2026-05-16",
+  "save_point": true,
+  "summary": "Text-to-image reference retrieval pipeline is functional. Voice input deferred. Indexing quality is acceptable but not perfect.",
+  "hardware": {
+    "cpu": "AMD Ryzen 5 5600X",
+    "gpu": "Intel Arc A750",
+    "ram": "16GB DDR4",
+    "os": "Fedora 44",
+    "displays": {
+      "DP-3": "3328x1872 — XP-Pen drawing display (primary, images open here)",
+      "DP-1": "2560x1600 — Acer monitor (secondary, terminal here)"
+    }
+  },
+  "model": {
+    "name": "bartowski/qwen2-vl-2b-instruct",
+    "backend": "LM Studio",
+    "url": "http://10.146.227.7:1234",
+    "auto_detect": true,
+    "config_file": "~/friday/api_endpoint.txt",
+    "parallel_slots": 4,
+    "indexing_speed": "~2-4s per image (resized to 1024px)",
+    "json_reliability": "Unreliable — hallucinates, outputs dicts instead of strings, copies examples"
+  },
+  "image_library": {
+    "total": 20,
+    "location": "~/friday/refs/",
+    "formats": [
+      "jpg",
+      "png",
+      "jpeg"
+    ],
+    "webp_converted": true
+  },
+  "index_status": {
+    "file": "~/friday/captions_multi_lens.json",
+    "indexed": 20,
+    "quality": "Mixed",
+    "good": 12,
+    "mediocre": 5,
+    "broken": 3,
+    "approach": "Multi-lens (3 captions per image), single API call, auto-resize"
+  },
+  "pipeline": {
+    "input": {
+      "voice": "Not implemented — no mic, Bluetooth dead, Vosk model downloaded but unused",
+      "text": "✅ Working — friday_text.py"
+    },
+    "search": {
+      "backend": "Local keyword search on captions_multi_lens.json",
+      "expansion": "Disabled — LLM expansion was non-deterministic",
+      "matching": "Whole-word regex matching",
+      "tool": "search_friday.py"
+    },
+    "viewer": {
+      "tool": "feh",
+      "display": "XP-Pen (DP-3)",
+      "mode": "One window per image, tiled horizontally",
+      "window_title": "friday-ref-N",
+      "control": "xdotool search --name '^friday-ref-' | xargs xdotool windowclose"
+    },
+    "main_script": "friday_text.py"
+  },
+  "working_commands": {
+    "run_friday": "python ~/friday/core/friday_text.py",
+    "reindex_all": "python ~/friday/core/reindex_all.py",
+    "search_direct": "python ~/friday/core/search_friday.py <query>",
+    "close_all_windows": "xdotool search --name '^friday-ref-' | xargs xdotool windowclose",
+    "find_lm_studio": "Auto-detected on first run, saved to ~/friday/api_endpoint.txt"
+  },
+  "files_inventory": {
+    "core_dir": "~/friday/core/",
+    "scripts": [
+      "friday_text.py — Main pipeline (text input, auto-detect API, XP-Pen viewer)",
+      "search_friday.py — Keyword search on multi-lens index",
+      "reindex_all.py — Full re-indexer (minimal prompt, generic example)",
+      "listen.py — Vosk voice input (unused, no mic)",
+      "index_multi_lens_robust.py — Obsolete, replaced by reindex_all.py",
+      "index_targeted.py — Domain-specific indexer (unused)",
+      "survey_domains.py — Shows all captions (debug tool)"
+    ],
+    "data": [
+      "~/friday/captions_multi_lens.json — 20 images, mixed quality",
+      "~/friday/captions_expert.json — 20 single captions (legacy, unused)",
+      "~/friday/api_endpoint.txt — LM Studio URL cache"
+    ],
+    "models": [
+      "~/friday/models/vosk-model-small-en-us-0.15/ — Vosk voice model (40MB, unused)"
+    ]
+  },
+  "what_works_now": [
+    "Type any word → search captions → open matching images on XP-Pen",
+    "Multiple results = multiple tiled windows",
+    "Auto-detects LM Studio IP after reboot",
+    "Whole-word search finds exact matches (warrior, combat, sword, training, samurai)",
+    "12/20 images have vivid, searchable captions",
+    "5/20 images have acceptable but generic captions",
+    "3/20 images have broken/empty captions from JSON parse failures"
+  ],
+  "what_is_broken": [
+    "Qwen2 VL 2B cannot reliably output structured JSON — hallucinates, nests dicts, copies examples",
+    "3 images failed re-indexing (JSON parse errors)",
+    "Voice input not implemented (no mic, Bluetooth dead)",
+    "Search misses partial matches (no substring fallback)",
+    "No semantic/similarity search — only exact keyword matching"
+  ],
+  "rejected_ideas": [
+    "CLIP embeddings — user rejected, wants LLM-only",
+    "Concurrent indexing — VRAM crash on Arc A750, single-thread only",
+    "PyQt6 GUI — too heavy for MVP",
+    "KRunner integration — KDE-specific, not core",
+    "Persistent mascot / cursor pet — distraction",
+    "Obsidian integration — out of scope"
+  ],
+  "next_session_priorities": {
+    "tier_1_fixes": [
+      "Fix 3 broken image captions (manual edit or plain-text re-index)",
+      "Add substring fallback to search (so 'war' finds 'warrior')",
+      "Test with random words: tree, blue, angry, city, alone, fire"
+    ],
+    "tier_2_features": [
+      "Targeted domain re-indexing for specific image sets",
+      "LLM query expansion with deterministic caching",
+      "Search by specific lens: --lens narrative 'tense scene'"
+    ],
+    "tier_3_future": [
+      "Voice input when mic/Bluetooth fixed",
+      "Larger VL model (7B+) for reliable JSON",
+      "Tablet pen button trigger",
+      "Batch overnight indexing for new folders"
+    ]
+  },
+  "mvp_status": "FUNCTIONAL — Text input works, images open on correct monitor, search finds relevant results for 60% of queries. Voice deferred. Quality acceptable for daily use.",
+  "deadline": "2026-06-01",
+  "days_remaining": 15
+}
