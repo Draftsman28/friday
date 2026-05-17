@@ -8,7 +8,7 @@ import json
 import re
 import sys
 import argparse
-from core import config
+import config
 
 def get_endpoint():
     if config.CONFIG_FILE.exists():

@@ -10,7 +10,7 @@ import shutil
 import time
 import urllib.request
 from pathlib import Path
-from core import config
+import config
 
 def find_lm_studio():
     """Auto-detect LM Studio server on local network."""
@@ -99,7 +99,7 @@ def open_image_single(filename, idx, total):
 def search_query(query):
     # Using sys.executable to run search.py as a script to maintain original behavior
     # while allowing it to be part of the module.
-    result = subprocess.run([sys.executable, "-m", "core.search", query], capture_output=True, text=True, timeout=30)
+    result = subprocess.run([sys.executable, "search.py", query], capture_output=True, text=True, timeout=30)
     return result.stdout, result.stderr
 
 def main():

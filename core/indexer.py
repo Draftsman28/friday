@@ -12,7 +12,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from datetime import datetime
-from core import config
+import config
 
 def get_endpoint():
     if config.CONFIG_FILE.exists():
